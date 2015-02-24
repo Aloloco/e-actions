@@ -1,4 +1,16 @@
 module.exports = {
+  participants: [
+    {
+      "first" : "John",
+      "last" : "Smith",
+      "email" : "john.smith@gmail.com",
+      "address" : "21 street street, London",
+      "postcode" : "WC1 0RL",
+      "wantsUpdates" : true,
+      "twitter" : "johnsmith",
+      "facebook" : "johnsmith"
+    }
+  ],
   petitions : [
     {
       "name" : "a descriptive name",
@@ -48,5 +60,8 @@ module.exports = {
   },
   makeRandomPetition: function makeRandomPetition() {
     return JSON.parse(JSON.stringify(this.petitions[Math.random() * this.petitions.length | 0]))
+  },
+  makeRandomParticipant: function makeRandomParticipant() {
+    return JSON.parse(JSON.stringify(this.participants[Math.random() * this.participants.length | 0]));
   }
 };

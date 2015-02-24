@@ -151,7 +151,9 @@ module.exports = function Petitions(options) {
         index: indexName,
         type: typeName,
         id: petition.id,
-        body: petition.updates
+        body: {
+          doc: petition.updates
+        }
       }).then(function(resp) {
         callback(null, resp);
       }, function(err) {
@@ -161,11 +163,26 @@ module.exports = function Petitions(options) {
 
     // signs a petition given a user, i.e. adds
     // a user to a petition.
-    signPetition : function signPetition(user, callback) {
+    signPetition : function signPetition(petitionId, user, callback) {
       // add user
       // send email
       // update petition
-      throw new Error('not implemented');
+
+      client.update({
+        index : indexName,
+        type : typeName,
+        id: petitionId,
+        body: {
+          script: "ctx._source.participants += new_participant",
+          params: {
+            new_participant: user
+          }
+        }
+      }).then(function(resp) {
+        callback(null, resp);
+      }, function(err) {
+        callback(err);
+      })
     }
 
   }

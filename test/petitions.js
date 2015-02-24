@@ -125,7 +125,6 @@ describe('Petition', function(){
         type: esOptions.typeName,
         body: fixtures.makeRandomPetition()
       }).then(function(resp) {
-        console.log(resp)
         petitions.updatePetition({
           id: resp._id,
           updates : {
@@ -133,6 +132,8 @@ describe('Petition', function(){
           }
         }, function(err, response) {
           should.not.exist(err);
+          response._id.should.equal(resp._id);
+          response._version.should.equal(2);
           done()
         })
       });
@@ -165,8 +166,26 @@ describe('Petition', function(){
     it('should have a signPetition method', function () {
       petitions.signPetition.should.be.a.function;
     });
-    it('should not throw', function() {
-      petitions.signPetition.should.not.throw();
+    it('should add a participant to the petition', function(done) {
+      petitions.__client.create({
+        index: esOptions.indexName,
+        type: esOptions.typeName,
+        body: fixtures.makeRandomPetition()
+      }).then(function(resp) {
+        var user = fixtures.makeRandomParticipant();
+        petitions.signPetition(resp._id, user, function(err, response) {
+          should.not.exist(err);
+          response._id.should.equal(resp._id);
+          petitions.getPetitionById(resp._id, function(err, response) {
+            should.not.exist(err);
+            var newUser = response._source.participants[0];
+            for (var key in newUser) {
+              newUser[key].should.equal(user[key]);
+            }
+            done();
+          });
+        });
+      });
     });
   });
 

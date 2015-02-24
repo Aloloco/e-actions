@@ -1,5 +1,5 @@
 module.exports = {
-  "petition" : {
+  "petitions" : {
     "properties" : {
       "name" : {"type" : "string", "store" : true },
       "title" : {"type" : "string", "store" : true },

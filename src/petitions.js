@@ -2,16 +2,19 @@
 var elasticsearch = require('elasticsearch');
 var validator = require('./validator')();
 
-module.exports = function Petitions() {
+module.exports = function Petitions(options) {
+
+
 
   var client = new elasticsearch.Client({
-    host: 'localhost:9200',
-    log: 'trace'
+    host: options.host,
+    log: 'error'
   });
 
-  var indexName = "e-action";
-  var typeName = "petitions";
+  var indexName = options.indexName;
+  var typeName = options.typeName;
 
+  // PRIVATE METHODS
   // processes a petition
   function processPetition(petition) {
     petition.createdDate = new Date();
@@ -19,29 +22,65 @@ module.exports = function Petitions() {
     return petition;
   }
 
+  // PUBLIC METHODS
   return {
-
+    // expose the client for testing (you shouldn't do that)
+    __client : client,
     // gets all available petitions
     getAllPetitions: function getAllPetitions(callback) {
-      client.get({
+      client.search({
         index : indexName,
-        type : typeName
+        type : typeName,
+        body : {
+          query: {
+            match_all: {}
+          }
+        }
       }).then(function(resp) {
         callback(null, resp.hits.hits);
-      }, function(error) {
+      }, function(err) {
         callback(err);
       });
     },
 
     // gets the latest petitions
     getLatestPetitions: function getLatestPetitions(howMany, callback) {
+      howMany = howMany || 10;
       // todo
-      throw new Error('not implemented');
+      client.search({
+        index: indexName,
+        type: typeName,
+        body: {
+          query: {
+            match_all : {}
+          },
+          size: howMany,
+          sort: [
+            {
+              createdDate : {
+                order: 'desc'
+              }
+            }
+          ]
+        }
+      }).then(function(resp) {
+        callback(null, resp.hits.hits);
+      }, function(err) {
+        callback(err);
+      });
     },
 
     // gets petitions based on a search term
     searchForPetitions: function searchForPetitions(query, callback) {
-      throw new Error('not implemented');
+      client.search({
+        index: indexName,
+        type: typeName,
+        q: query
+      }).then(function(resp) {
+        callback(null, resp.hits.hits);
+      }, function(err) {
+        callback(err);
+      })
     },
 
     // gets a petition by id
@@ -51,6 +90,11 @@ module.exports = function Petitions() {
         type: typeName,
         id: petitionId
       }).then(function(resp) {
+
+        if (!resp.found) {
+          callback(new Error('Could not find petition with id', petitionId, resp))
+        }
+
         callback(null, resp);
       }, function(err) {
         callback(err);
@@ -63,11 +107,11 @@ module.exports = function Petitions() {
       var valid = validator.validatePetition(petition);
 
       if (!valid) {
-        callback(new Error("Petition invalid", petition));
+        return callback(new Error("Petition invalid", petition));
       }
 
 
-      client.post({
+      client.create({
         index: indexName,
         type: typeName,
         body: processPetition(petition)
@@ -75,17 +119,44 @@ module.exports = function Petitions() {
         callback(null, resp);
       }, function(err) {
         callback(err);
-      })
+      });
     },
 
     // deletes a petition from an id
     deletePetitionById: function deletePetitionById(petitionId, callback) {
-      throw new Error('not implemented');
+      if (typeof petitionId === 'undefined') {
+        return callback(new Error('must pass a petitionId'))
+      }
+      client.delete({
+        index: indexName,
+        type: typeName,
+        id: petitionId
+      }).then(function(resp) {
+        callback(null, resp);
+      }, function(err) {
+        callback(err);
+      });
     },
 
     // updates a petition from a data object
     updatePetition: function updatePetition(petition, callback) {
-      throw new Error('not implemented');
+      if (typeof petition.id === 'undefined') {
+        return callback(new Error('must pass a petitionId'));
+      }
+      if (typeof petition.updates === 'undefined') {
+        return callback(new Error('must pass some updates'));
+      }
+
+      client.update({
+        index: indexName,
+        type: typeName,
+        id: petition.id,
+        body: petition.updates
+      }).then(function(resp) {
+        callback(null, resp);
+      }, function(err) {
+        callback(err);
+      });
     },
 
     // signs a petition given a user, i.e. adds

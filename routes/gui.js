@@ -1,8 +1,12 @@
 // Routes for the gui
 var express = require('express');
-
 var app = express();
 var router = express.Router();
+
+require('node-jsx').install();
+
+var React = require('react');
+
 
 // pass the handler for the petitions
 // so we use just one instance
@@ -26,7 +30,10 @@ module.exports = function(handler) {
         return next(err);
       }
 
-      res.send(resp);
+      var petitionView = require('../src/views/petition.jsx');
+      var petition = resp._source;
+
+      res.send(React.renderToString(petitionView(petition)));
       res.end();
 
     })

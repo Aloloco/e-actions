@@ -166,16 +166,21 @@ module.exports = function Petitions(options) {
     // a user to a petition.
     addUserToPetition : function addUserToPetition(petitionId, participant, callback) {
       // add user
-      // send email
       this.getPetitionById(petitionId, function(err, resp) {
         if (err) {
           return callback(err);
         }
+
+        if (!resp._source.active) {
+          return callback(new Error("Cannot add participant to inactive petition"));
+        }
+
         // test if participant has signed already;
         var participants = resp._source.participants;
         if (_.findWhere(participants, { email : participant.email })) {
           return callback(new Error("Participant has already signed the petition", participant))
         }
+        // XXX send email if validate
 
         // update petition
         client.update({
@@ -194,9 +199,7 @@ module.exports = function Petitions(options) {
           callback(err);
         });
 
-      })
-
-
+      });
 
     }
 

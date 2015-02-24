@@ -12,7 +12,6 @@ app.get('/', function (req, res) {
 var petitions = require('./routes/petitions');
 app.use('/petitions', petitions);
 
-
 // start the server
 var server = app.listen(3000, function() {
 

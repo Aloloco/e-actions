@@ -15,6 +15,8 @@ module.exports = {
     {
       "name" : "a descriptive name",
       "title" : "Biofuel sucks and it's not sustainable",
+      "active" : true,
+      "goal" : 1000,
       "participants" : [],
       "recipients" : [
         {

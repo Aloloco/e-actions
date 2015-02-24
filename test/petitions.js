@@ -207,6 +207,23 @@ describe('Petition', function(){
           response._source.participants.length.should.equal(1);
           done();
         });
+      });
+    });
+    it('should not be possible to add a participant to an inactive petition', function(done) {
+      var user = this.user;
+      var petitionId = this.id;
+      var update = {
+        id : petitionId,
+        updates : {
+          active: false
+        }
+      };
+      petitions.updatePetition(update, function(err, response) {
+        should.not.exist(err);
+        petitions.addUserToPetition(petitionId, user, function(err, response) {
+          err.should.exist;
+          done();
+        })
       })
     })
   });

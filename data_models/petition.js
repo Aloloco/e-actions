@@ -4,6 +4,8 @@ module.exports = {
       "name" : {"type" : "string", "store" : true },
       "title" : {"type" : "string", "store" : true },
       "createdDate" : { "type" : "date" },
+      "active" : {"type" : "boolean"},
+      "goal" : {"type" : "integer", "null_value" : 1000},
       "participants" : {
         "type" : "nested",
         "properties" : {

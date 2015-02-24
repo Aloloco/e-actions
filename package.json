@@ -1,0 +1,19 @@
+{
+  "name": "e-Actions-api",
+  "version": "0.0.0",
+  "description": "the API for the e-actions site",
+  "main": "app.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Aloloco/e-actions"
+  },
+  "author": "Dario Villanueva",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Aloloco/e-actions/issues"
+  },
+  "homepage": "https://github.com/Aloloco/e-actions"
+}

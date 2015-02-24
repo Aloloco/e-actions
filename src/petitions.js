@@ -5,8 +5,6 @@ var _ = require('lodash');
 
 module.exports = function Petitions(options) {
 
-
-
   var client = new elasticsearch.Client({
     host: options.host,
     log: 'error'

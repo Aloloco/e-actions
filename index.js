@@ -2,15 +2,20 @@ var express = require('express');
 
 var app = express();
 
-// home middleware
-app.get('/', function (req, res) {
-  res.send('E-Action Middleware')
-})
+// the petitions handler
+var petitions = require('./src/petitions')({
+  host: "localhost:9200",
+  indexName: "e-actions-test",
+  typeName: "petitions"
+});
 
+// the app
+var gui = require('./routes/gui')(petitions);
+app.use('/', gui);
 
-// use a router for petitions
-var petitions = require('./routes/petitions');
-app.use('/petitions', petitions);
+// the api
+var petitions = require('./routes/petitions')(petitions);
+app.use('/api/petitions', petitions);
 
 // start the server
 var server = app.listen(3000, function() {

@@ -162,31 +162,53 @@ describe('Petition', function(){
   });
 
 
-  describe('#signPetition', function () {
-    it('should have a signPetition method', function () {
-      petitions.signPetition.should.be.a.function;
-    });
-    it('should add a participant to the petition', function(done) {
+  describe('#addUserToPetition', function () {
+    before(function(done) {
+      this.user = fixtures.makeRandomParticipant();
+
+      var that = this;
+
       petitions.__client.create({
         index: esOptions.indexName,
         type: esOptions.typeName,
         body: fixtures.makeRandomPetition()
       }).then(function(resp) {
-        var user = fixtures.makeRandomParticipant();
-        petitions.signPetition(resp._id, user, function(err, response) {
+        that.id = resp._id;
+        done();
+      });
+    })
+
+    it('should have a addUserToPetition method', function () {
+      petitions.addUserToPetition.should.be.a.function;
+    });
+    it('should add a participant to the petition', function(done) {
+      var user = this.user;
+      var petitionId = this.id;
+      petitions.addUserToPetition(petitionId, user, function(err, response) {
+        should.not.exist(err);
+        response._id.should.equal(petitionId);
+        petitions.getPetitionById(petitionId, function(err, response) {
           should.not.exist(err);
-          response._id.should.equal(resp._id);
-          petitions.getPetitionById(resp._id, function(err, response) {
-            should.not.exist(err);
-            var newUser = response._source.participants[0];
-            for (var key in newUser) {
-              newUser[key].should.equal(user[key]);
-            }
-            done();
-          });
+          var newUser = response._source.participants[0];
+          for (var key in newUser) {
+            newUser[key].should.equal(user[key]);
+          }
+          done();
         });
       });
     });
+    it('should not add the same participant twice to the same petition', function(done) {
+      var user = this.user;
+      var petitionId = this.id;
+      petitions.addUserToPetition(petitionId, user, function(err, response) {
+        err.should.exist;
+        petitions.getPetitionById(petitionId, function(err, response) {
+          should.not.exist(err);
+          response._source.participants.length.should.equal(1);
+          done();
+        });
+      })
+    })
   });
 
 });

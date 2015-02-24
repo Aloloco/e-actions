@@ -1,6 +1,7 @@
 // the handler for the petitions.
 var elasticsearch = require('elasticsearch');
 var validator = require('./validator')();
+var _ = require('lodash');
 
 module.exports = function Petitions(options) {
 
@@ -163,26 +164,40 @@ module.exports = function Petitions(options) {
 
     // signs a petition given a user, i.e. adds
     // a user to a petition.
-    signPetition : function signPetition(petitionId, user, callback) {
+    addUserToPetition : function addUserToPetition(petitionId, participant, callback) {
       // add user
       // send email
-      // update petition
-
-      client.update({
-        index : indexName,
-        type : typeName,
-        id: petitionId,
-        body: {
-          script: "ctx._source.participants += new_participant",
-          params: {
-            new_participant: user
-          }
+      this.getPetitionById(petitionId, function(err, resp) {
+        if (err) {
+          return callback(err);
         }
-      }).then(function(resp) {
-        callback(null, resp);
-      }, function(err) {
-        callback(err);
+        // test if participant has signed already;
+        var participants = resp._source.participants;
+        if (_.findWhere(participants, { email : participant.email })) {
+          return callback(new Error("Participant has already signed the petition", participant))
+        }
+
+        // update petition
+        client.update({
+          index : indexName,
+          type : typeName,
+          id: petitionId,
+          body: {
+            script: "ctx._source.participants += new_participant",
+            params: {
+              new_participant: participant
+            }
+          }
+        }).then(function(resp) {
+          callback(null, resp);
+        }, function(err) {
+          callback(err);
+        });
+
       })
+
+
+
     }
 
   }
